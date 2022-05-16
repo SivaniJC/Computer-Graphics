@@ -23,6 +23,8 @@ void display()
 	glLoadIdentity();
 	triangle();
 	glRotatef(angle, 0.0, 0.0, 1.0);	//function computes a matrix that performs a counterclockwise rotation of angle degrees about the vector from the origin through the point (x, y, z).
+	glTranslatef(-100, -250, 0.0);
+	triangle();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(100, 250, 0.0);
@@ -40,8 +42,8 @@ void main(int argc, char** argv)
 	glutInitWindowSize(1000, 1000);
 	glutCreateWindow("Trianle Rotation");
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0, 500, 0, 500);
+	glLoadIdentity();	
+	gluOrtho2D(-500, 500, -500, 500);
 	glutDisplayFunc(display);
 	glutMainLoop();
 }
