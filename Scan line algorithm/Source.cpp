@@ -1,23 +1,20 @@
 #include<windows.h>
-#include<GL/glut.h>
+#include<glut.h>
 #include<stdio.h>
-static int window;
-static int menu_id;
-static int submenu_id;
-static int value = 0;
-float x1 = 200.0, y1 = 200.0, x2 = 100.0, y2 = 300.0, x3 = 200.0, y3 = 400.0, x4 = 300.0, y4 = 300.0;
 
-void draw_pixel(int x, int y)
+float x1=200, y1=200, x2=100, y2=300, x3=200, y3=400, x4=300, y4=300;
+int value = 0;
+void init()
 {
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin(GL_POINTS);
-	glVertex2i(x, y);
-	glEnd();
-	glFlush();
+	glClearColor(1, 1, 1, 1);
+	glColor3f(1, 0, 0);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0, 500, 0, 500);
 }
-void edgedetect(float x1, float y1, float x2, float y2, int* le, int* re)
+void edge_detect(float x1, float y1, float x2, float y2,int* le,int* re)
 {
-	float mx, x, temp;
+	float mx,temp,x;
 	int i;
 	if ((y2 - y1) < 0)
 	{
@@ -27,14 +24,15 @@ void edgedetect(float x1, float y1, float x2, float y2, int* le, int* re)
 		temp = x1;
 		x1 = x2;
 		x2 = temp;
-
 	}
 	if ((y2 - y1) != 0)
 	{
 		mx = (x2 - x1) / (y2 - y1);
 	}
 	else
+	{ 
 		mx = x2 - x1;
+	}
 	x = x1;
 	for (i = y1; i <= y2; i++)
 	{
@@ -45,101 +43,75 @@ void edgedetect(float x1, float y1, float x2, float y2, int* le, int* re)
 		x += mx;
 	}
 }
-
+void drawpixel(int x, int y)
+{
+	glColor3f(1, 0, 1);
+	glBegin(GL_POINTS);
+	glVertex2i(x, y);
+	glEnd();
+	glFlush();
+}
 void scanfill(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
 {
-	int left_edge[500], right_edge[500];
-	int i, y;
-
-	for (i = 0; i <= 500; i++)
+	int le[500], re[500];
+	int i,y;
+	for (i = 0; i < 500; i++)
 	{
-		left_edge[i] = 500;
-		right_edge[i] = 0;
+		le[i] = 500;
+		re[i] = 0;
 	}
-
-	edgedetect(x1, y1, x2, y2, left_edge, right_edge);
-
-	edgedetect(x2, y2, x3, y3, left_edge, right_edge);
-
-	edgedetect(x3, y3, x4, y4, left_edge, right_edge);
-
-	edgedetect(x4, y4, x1, y1, left_edge, right_edge);
-
-	for (y = 0; y <= 500; y++)
+	edge_detect(x1,y1,x2,y2,le,re);
+	edge_detect(x2, y2, x3, y3,le,re);
+	edge_detect(x3, y3, x4, y4,le,re);
+	edge_detect(x4,y4,x1,y1,le,re);
+	for (y = 0; y < 500; y++)
 	{
-		if (left_edge[y] <= right_edge[y])
+		if (le[y] <= re[y])
 		{
-			for (i = left_edge[y]; i <= right_edge[y]; i++)
+			for(i=le[y];i<re[y];i++)
 			{
-				draw_pixel(i, y);
+				drawpixel(i, y);
 				glFlush();
 			}
 		}
 	}
 }
-void menu(int num)
-{
-	if (num == 0)
-	{
-		glutDestroyWindow(window);
-		exit(0);
-	}
-	else
-	{
-		value = num;
-	}
-	glutPostRedisplay();
-}
-void Create_Menu(void)
-{
-	submenu_id = glutCreateMenu(menu);
-	glutAddMenuEntry("Scanfill Polygon", 2);
-	menu_id = glutCreateMenu(menu);
-	glutAddMenuEntry("Clear", 1);
-	glutAddSubMenu("Draw", submenu_id);
-	glutAddMenuEntry("Quit", 0);
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
-}
-void display(void)
+void display()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+	glColor3f(0, 0, 0);
+	glBegin(GL_LINE_LOOP);
+	glVertex2i(x1,y1);
+	glVertex2i(x2,y2);
+	glVertex2i(x3,y3);
+	glVertex2i(x4,y4);
+	glEnd();
 	if (value == 1)
 	{
-		glutPostRedisplay();
-	}
-	else if (value == 2)
-	{
-		glClear(GL_COLOR_BUFFER_BIT);
-		glColor3f(0.0, 0.0, 1.0);
-		glBegin(GL_LINE_LOOP);
-		glVertex2f(x1, y1);
-		glVertex2f(x2, y2);
-		glVertex2f(x3, y3);
-		glVertex2f(x4, y4);
-		glEnd();
 		scanfill(x1, y1, x2, y2, x3, y3, x4, y4);
-		glFlush();
 	}
+	glFlush();
 }
-void myinit()
+void menu(int option)
 {
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glColor3f(1.0, 0.0, 0.0);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, 499.0, 0.0, 499.0);
+	if (option == 1)
+		value = 1;
+	if(option==2)
+		value = 2;
+	display();
 }
-int main(int argc, char** argv)
+void main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_SINGLE);
+	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
 	glutInitWindowSize(500, 500);
 	glutInitWindowPosition(100, 100);
-	window = glutCreateWindow("Menu driven Programming for Scan filling");
-	Create_Menu();
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glutCreateWindow("ScanLine Fill");
+	init();
 	glutDisplayFunc(display);
-	myinit();
+	glutCreateMenu(menu);
+	glutAddMenuEntry("Polygon Fill", 1);
+	glutAddMenuEntry("Clear", 2);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 	glutMainLoop();
-	return EXIT_SUCCESS;
 }
